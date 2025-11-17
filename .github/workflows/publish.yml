@@ -1,0 +1,35 @@
+name: publish
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+jobs:
+  push-ghcr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/gitsoviet
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to ghcr
+        run: echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Build image
+        run: docker build -t $IMAGE_NAME:${{ github.sha }} .
+      - name: Push sha tag
+        run: docker push $IMAGE_NAME:${{ github.sha }}
+      - name: Push latest tag
+        if: github.ref == 'refs/heads/main'
+        run: |
+          docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:latest
+      - name: Push release tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_NAME:${{ github.ref_name }}
+          docker push $IMAGE_NAME:${{ github.ref_name }}

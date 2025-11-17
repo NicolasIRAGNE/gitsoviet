@@ -1,0 +1,31 @@
+name: revolutionary
+
+on:
+  pull_request_target:
+    types: [ready_for_review, labeled]
+
+jobs:
+  celebrate:
+    if: >
+      env.API_KEY != '' &&
+      github.event.pull_request.draft == false &&
+      contains(join(github.event.pull_request.labels.*.name, ','), 'revolutionary')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    env:
+      API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate revolutionary poster
+        id: poster
+        uses: ./
+        with:
+          api-key: ${{ env.API_KEY }}
+          additional-guidance: "Automatic revolutionary salute"
+      - name: Upload poster artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: revolutionary-poster-${{ github.event.pull_request.number }}
+          path: ${{ steps.poster.outputs.image-path }}

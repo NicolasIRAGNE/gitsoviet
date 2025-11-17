@@ -1,0 +1,23 @@
+# Python build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Local tooling
+.mypy_cache/
+.ruff_cache/
+.idea/
+.vscode/
+
+# Generated assets
+poster.png
+*.png
+
+# OS cruft
+Thumbs.db
+.DS_Store

@@ -1,0 +1,61 @@
+name: "GitSoviet Propaganda Poster"
+description: "Generate a propaganda poster for a pull request"
+author: "gitsoviet"
+inputs:
+  api-key:
+    description: "API key for the image provider"
+    required: true
+  github-token:
+    description: "Token used to query PR metadata"
+    required: false
+    default: ${{ github.token }}
+  additional-guidance:
+    description: "Free-form extra instructions for the prompt"
+    required: false
+    default: ""
+  language:
+    description: "Language for slogans"
+    required: false
+    default: "English"
+  format:
+    description: "poster or mural"
+    required: false
+    default: "poster"
+  style:
+    description: "soviet/dprk/cuban/capitalist/royalist"
+    required: false
+    default: "soviet"
+  provider:
+    description: "Image provider name"
+    required: false
+    default: "openai"
+  output-file:
+    description: "Path for the rendered image"
+    required: false
+    default: "poster.png"
+outputs:
+  image-path:
+    description: "Absolute path to the generated asset"
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  env:
+    GITHUB_TOKEN: ${{ inputs.github-token }}
+    OPENAI_API_KEY: ${{ inputs.api-key }}
+    GITSOVIET_OUTPUT: ${{ inputs.output-file }}
+  args:
+    - "generate"
+    - "--repo"
+    - "${{ github.repository }}"
+    - "--format-name"
+    - "${{ inputs.format }}"
+    - "--style-name"
+    - "${{ inputs.style }}"
+    - "--language"
+    - "${{ inputs.language }}"
+    - "--provider"
+    - "${{ inputs.provider }}"
+    - "--extra-guidance"
+    - "${{ inputs.additional-guidance }}"
+    - "--output-path"
+    - "${{ inputs.output-file }}"
