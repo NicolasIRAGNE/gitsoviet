@@ -4,7 +4,7 @@ GitHub App that listens to pull request events on opted-in repositories and resp
 
 ## Features
 
-- Handles `opened`, `reopened`, and `synchronize` pull request events.
+- Handles `opened`, `reopened`, `synchronize`, and `ready_for_review` pull request events.
 - Builds a detailed prompt using the PR title, description, and changed files.
 - Generates a poster image through a pluggable provider (ChatGPT Image API or a dummy placeholder).
 - Posts a comment on the pull request with the generated poster and the prompt used.

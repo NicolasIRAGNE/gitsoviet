@@ -8,7 +8,8 @@ type PullRequestPayload = Context<'pull_request'>['payload'];
 type PullRequestEventName =
   | 'pull_request.opened'
   | 'pull_request.reopened'
-  | 'pull_request.synchronize';
+  | 'pull_request.synchronize'
+  | 'pull_request.ready_for_review';
 
 const config = loadConfig();
 const imageProvider = createImageProvider(config);
@@ -130,6 +131,11 @@ const handlePullRequestEvent = async (context: Context<'pull_request'>): Promise
 };
 
 export default (app: Probot): void => {
-  const events: PullRequestEventName[] = ['pull_request.opened', 'pull_request.reopened', 'pull_request.synchronize'];
+  const events: PullRequestEventName[] = [
+    'pull_request.opened',
+    'pull_request.reopened',
+    'pull_request.synchronize',
+    'pull_request.ready_for_review',
+  ];
   app.on(events, handlePullRequestEvent);
 };
