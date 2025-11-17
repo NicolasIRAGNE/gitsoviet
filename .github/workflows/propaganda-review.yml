@@ -1,0 +1,126 @@
+name: Soviet Propaganda PR Review
+
+on:
+  workflow_call:
+    inputs:
+      pull_number:
+        description: "Pull request number to review"
+        required: true
+        type: number
+      image_prompt:
+        description: "Additional instructions for the propaganda artwork"
+        required: false
+        default: "Create a heroic Soviet-style propaganda poster with bold reds and geometric shapes."
+        type: string
+      image_api:
+        description: "Image generation provider (openai or custom)"
+        required: false
+        default: "openai"
+        type: string
+      openai_model:
+        description: "Model to use for the ChatGPT Image API"
+        required: false
+        default: "gpt-image-1"
+        type: string
+      openai_base_url:
+        description: "Override base URL for compatible image generation endpoints"
+        required: false
+        default: "https://api.openai.com/v1"
+        type: string
+    secrets:
+      openai_api_key:
+        description: "API key for the ChatGPT Image API or compatible service"
+        required: true
+
+jobs:
+  generate-poster:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Collect pull request details
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pr_json=$(gh api repos/${{ github.repository }}/pulls/${{ inputs.pull_number }})
+          title=$(echo "$pr_json" | jq -r .title)
+          author=$(echo "$pr_json" | jq -r .user.login)
+          body=$(echo "$pr_json" | jq -r '.body // ""')
+          additions=$(echo "$pr_json" | jq -r .additions)
+          deletions=$(echo "$pr_json" | jq -r .deletions)
+          changed_files=$(echo "$pr_json" | jq -r .changed_files)
+          file_summaries=$(gh api repos/${{ github.repository }}/pulls/${{ inputs.pull_number }}/files --paginate \
+            | jq -r '.[] | "- " + .filename + " (" + (.additions|tostring) + "+/" + (.deletions|tostring) + "-)"')
+
+          summary=$(cat <<'SUMMARY'
+Pull Request Title: %s
+Author: %s
+Files Changed: %s
+Additions: %s | Deletions: %s
+
+Description:
+%s
+
+Changed Files:
+%s
+SUMMARY
+          )
+          printf "$summary" "$title" "$author" "$changed_files" "$additions" "$deletions" "$body" "$file_summaries" | tee pr_context.txt
+          echo "title=$title" >> "$GITHUB_OUTPUT"
+
+      - name: Build image prompt
+        id: prompt
+        run: |
+          cat <<PROMPT > image_prompt.txt
+You are an illustrator creating a Soviet-style propaganda poster.
+Use the pull request context below to inspire the artwork.
+Highlight teamwork, code quality, and revolutionary zeal for software craftsmanship.
+
+${{ steps.pr.outputs.title }}
+
+PR Context:
+$(cat pr_context.txt)
+
+Additional user art direction:
+${{ inputs.image_prompt }}
+PROMPT
+
+      - name: Generate propaganda poster via ChatGPT Image API
+        id: image
+        env:
+          OPENAI_API_KEY: ${{ secrets.openai_api_key }}
+        run: |
+          set -euo pipefail
+          image_endpoint="${{ inputs.openai_base_url }}/images/generations"
+          prompt=$(cat image_prompt.txt)
+
+          response=$(curl -sS -X POST "$image_endpoint" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $OPENAI_API_KEY" \
+            -d "{\"model\":\"${{ inputs.openai_model }}\",\"prompt\":$(jq -Rs . <<< "$prompt")}")
+
+          if [ "${{ inputs.image_api }}" != "openai" ]; then
+            echo "Using custom provider compatible with OpenAI image generation endpoint: ${{ inputs.image_api }}" >&2
+          fi
+
+          echo "$response" | jq -e .data[0].b64_json > /dev/null
+          image_b64=$(echo "$response" | jq -r .data[0].b64_json)
+          echo "image_b64=$image_b64" >> "$GITHUB_OUTPUT"
+
+      - name: Post propaganda poster to PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat <<'COMMENT' > comment.md
+Слава разработчикам! Here is your bespoke Soviet-style propaganda poster for this pull request.
+
+![Soviet propaganda poster](data:image/png;base64,${{ steps.image.outputs.image_b64 }})
+
+_This image was generated automatically based on the pull request context. Da!_
+COMMENT
+          gh api repos/${{ github.repository }}/issues/${{ inputs.pull_number }}/comments -f body="$(cat comment.md)"
