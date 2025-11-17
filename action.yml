@@ -45,8 +45,6 @@ runs:
     GITSOVIET_OUTPUT: ${{ inputs.output-file }}
   args:
     - "generate"
-    - "--repo"
-    - "${{ github.repository }}"
     - "--format-name"
     - "${{ inputs.format }}"
     - "--style-name"
