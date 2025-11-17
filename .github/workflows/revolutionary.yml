@@ -1,12 +1,13 @@
 name: revolutionary
 
 on:
-    pull_request:
-        types: [labeled]
+  pull_request:
+    types:
+      - labeled
 
 jobs:
   celebrate:
-    if: ${{ github.event.pull_request.draft == false && contains(github.event.pull_request.labels.*.name, 'revolutionary') }}
+    if: ${{ github.event.label.name == 'revolutionary' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
