@@ -54,12 +54,19 @@ jobs:
         run: |
           mkdir -p output
           image_name="${IMAGE_NAME,,}"
-          docker pull "${image_name}:latest"
+          image_ref="${image_name}:latest"
+          if ! docker pull "${image_ref}"; then
+            image_ref="${image_name}:${GITHUB_SHA}"
+            if ! docker pull "${image_ref}"; then
+              echo "Image not found in GHCR, building from source..."
+              docker build -t "${image_ref}" .
+            fi
+          fi
           docker run --rm \
             -e OPENAI_API_KEY \
             -v "$PWD:/workspace" \
             -w /workspace \
-            "${image_name}:latest" \
+            "${image_ref}" \
             --repo-name "${{ github.repository }}" \
             --pr-title-file pr_title.txt \
             --pr-description-file pr_description.txt \
