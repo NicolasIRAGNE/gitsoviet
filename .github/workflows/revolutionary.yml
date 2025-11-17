@@ -53,12 +53,13 @@ jobs:
         shell: bash
         run: |
           mkdir -p output
-          docker pull ${IMAGE_NAME}:latest
+          image_name="${IMAGE_NAME,,}"
+          docker pull "${image_name}:latest"
           docker run --rm \
             -e OPENAI_API_KEY \
             -v "$PWD:/workspace" \
             -w /workspace \
-            ${IMAGE_NAME}:latest \
+            "${image_name}:latest" \
             --repo-name "${{ github.repository }}" \
             --pr-title-file pr_title.txt \
             --pr-description-file pr_description.txt \
