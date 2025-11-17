@@ -36,15 +36,9 @@ jobs:
           style='${{ vars.GITSOVIET_STYLE }}'
           if [ -z "$style" ]; then style='soviet'; fi
           extra='${{ vars.GITSOVIET_ADDITIONAL_PROMPT }}'
-          cat <<'EOF' > additional_prompt.txt
-${{ vars.GITSOVIET_ADDITIONAL_PROMPT }}
-EOF
-          cat <<'EOF' > pr_title.txt
-${{ github.event.pull_request.title }}
-EOF
-          cat <<'EOF' > pr_description.txt
-${{ github.event.pull_request.body || '' }}
-EOF
+          printf "%s\n" "${{ vars.GITSOVIET_ADDITIONAL_PROMPT }}" > additional_prompt.txt
+          printf "%s\n" "${{ github.event.pull_request.title }}" > pr_title.txt
+          printf "%s\n" "${{ github.event.pull_request.body || '' }}" > pr_description.txt
           {
             echo "language=$language"
             echo "format=$format"
