@@ -1,0 +1,52 @@
+name: "GitSoviet"
+description: "Generate propaganda poster prompts and images for pull requests"
+author: "GitSoviet Maintainers"
+inputs:
+  pr_title:
+    description: "Pull request title"
+    required: false
+  pr_body:
+    description: "Pull request body"
+    required: false
+  diff:
+    description: "Pull request diff"
+    required: false
+  changed_files:
+    description: "Newline-delimited list of changed files"
+    required: false
+  format:
+    description: "Visual format (poster or mural)"
+    default: "poster"
+    required: false
+  style:
+    description: "Art style"
+    default: "soviet"
+    required: false
+  language:
+    description: "Language for slogans"
+    default: "English"
+    required: false
+  provider:
+    description: "Image generation provider"
+    default: "openai"
+    required: false
+  guidance:
+    description: "Extra creative guidance"
+    required: false
+  api_key:
+    description: "API key for the provider"
+    required: false
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  env:
+    INPUT_PR_TITLE: ${{ inputs.pr_title }}
+    INPUT_PR_BODY: ${{ inputs.pr_body }}
+    INPUT_DIFF: ${{ inputs.diff }}
+    INPUT_CHANGED_FILES: ${{ inputs.changed_files }}
+    INPUT_FORMAT: ${{ inputs.format }}
+    INPUT_STYLE: ${{ inputs.style }}
+    INPUT_LANGUAGE: ${{ inputs.language }}
+    INPUT_PROVIDER: ${{ inputs.provider }}
+    INPUT_GUIDANCE: ${{ inputs.guidance }}
+    INPUT_API_KEY: ${{ inputs.api_key }}

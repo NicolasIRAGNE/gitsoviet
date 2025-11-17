@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gitsoviet"
+version = "0.1.0"
+description = "Generate propaganda posters for pull requests"
+authors = [{name = "GitSoviet Maintainers"}]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "openai>=1.57.0",
+  "jinja2>=3.1.4",
+]
+
+[project.scripts]
+gitsoviet = "gitsoviet.cli:run"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+"gitsoviet" = ["formats/*.txt", "styles/*.txt"]

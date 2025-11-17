@@ -1,0 +1,46 @@
+name: Ready PR Posters
+
+on:
+  pull_request:
+    types: [ready_for_review]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+jobs:
+  generate:
+    if: env.OPENAI_API_KEY != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Collect diff
+        id: gather
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+          git diff --unified=5 origin/${{ github.event.pull_request.base.ref }}...HEAD > /tmp/pr.diff
+          git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD > /tmp/pr.files
+
+          echo "diff<<'EOF'" >> "$GITHUB_OUTPUT"
+          cat /tmp/pr.diff >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+          echo "files<<'EOF'" >> "$GITHUB_OUTPUT"
+          cat /tmp/pr.files >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Generate propaganda poster
+        uses: ./. 
+        with:
+          pr_title: ${{ github.event.pull_request.title }}
+          pr_body: ${{ github.event.pull_request.body }}
+          diff: ${{ steps.gather.outputs.diff }}
+          changed_files: ${{ steps.gather.outputs.files }}
+          api_key: ${{ env.OPENAI_API_KEY }}
+          language: en
+          guidance: "Celebrate this contribution in glorious style"
