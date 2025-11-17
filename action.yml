@@ -44,7 +44,6 @@ runs:
     OPENAI_API_KEY: ${{ inputs.api-key }}
     GITSOVIET_OUTPUT: ${{ inputs.output-file }}
   args:
-    - "generate"
     - "--format-name"
     - "${{ inputs.format }}"
     - "--style-name"
