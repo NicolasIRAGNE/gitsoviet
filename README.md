@@ -24,7 +24,7 @@ jobs:
 ```
 
 ### Run automatically on this repository
-To generate a poster whenever changes land on `main` or when a `revolutionary` tag is pushed, store your API key in the `OPENAI_API_KEY` repository secret and keep your default branch protected so only trusted merges and tags run the workflow. The included `.github/workflows/self-propaganda.yml` uses the commit’s associated pull request to drive the prompt and falls back gracefully if no PR is found.
+To generate a poster whenever changes land on `main` or when a pull request is labeled `revolutionary`, store your API key in the `OPENAI_API_KEY` repository secret. Keep your default branch protected so only trusted merges run the workflow, and restrict who can apply the `revolutionary` label since applying it triggers the workflow with access to the secret. The included `.github/workflows/self-propaganda.yml` uses the commit’s associated pull request or the labeled PR number to drive the prompt and falls back gracefully if no PR is found.
 
 ## Inputs
 - `pull_number` (**required**): Target pull request number.
@@ -42,5 +42,5 @@ The workflow requests `pull-requests: write` to post the image comment and `cont
 
 ## Security considerations
 - Store your image-generation API key in `OPENAI_API_KEY`; it is only exposed to this workflow when the triggers fire.
-- Protect the `main` branch and limit who can push the `revolutionary` tag so only trusted changes can run the automation.
-- The self-run workflow looks up the pull request associated with the pushed commit; if none exists, it exits without using the secret.
+- Protect the `main` branch and limit who can apply the `revolutionary` label so only trusted actors can run the automation.
+- The self-run workflow looks up the pull request associated with the pushed commit or label; if none exists, it exits without using the secret.

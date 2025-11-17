@@ -1,11 +1,15 @@
-name: Propaganda on main merges and revolutionary tags
+name: Propaganda on main merges and revolutionary labels
 
 on:
   push:
     branches:
       - main
-    tags:
-      - revolutionary
+  pull_request_target:
+    types:
+      - labeled
+  issues:
+    types:
+      - labeled
 
 permissions:
   contents: read
@@ -13,31 +17,38 @@ permissions:
 
 jobs:
   auto-propaganda:
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request_target' && github.event.action == 'labeled' && github.event.label.name == 'revolutionary') ||
+      (github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'revolutionary' && github.event.issue.pull_request)
     runs-on: ubuntu-latest
     steps:
-      - name: Find pull request for this commit
+      - name: Resolve pull request and context
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          commit_sha="${{ github.sha }}"
-          pr_number=$(gh api repos/${{ github.repository }}/commits/${commit_sha}/pulls --jq '.[0].number')
+          event="${{ github.event_name }}"
 
-          if [ -z "$pr_number" ] || [ "$pr_number" = "null" ]; then
-            echo "No merged pull request found for commit $commit_sha. Skipping poster generation." >&2
-            exit 0
+          if [ "$event" = "push" ]; then
+            commit_sha="${{ github.sha }}"
+            pr_number=$(gh api repos/${{ github.repository }}/commits/${commit_sha}/pulls --jq '.[0].number')
+
+            if [ -z "$pr_number" ] || [ "$pr_number" = "null" ]; then
+              echo "No merged pull request found for commit $commit_sha. Skipping poster generation." >&2
+              exit 0
+            fi
+
+            extra="Celebrate the victorious merge into main at commit ${commit_sha:0:7}."
+          elif [ "$event" = "pull_request_target" ]; then
+            pr_number="${{ github.event.pull_request.number }}"
+            extra="Honor the newly applied revolutionary label on this pull request."
+          else
+            pr_number="${{ github.event.issue.number }}"
+            extra="Honor the newly applied revolutionary label on this pull request."
           fi
 
           echo "pull_number=$pr_number" >> "$GITHUB_OUTPUT"
-
-      - name: Build extra prompt
-        id: prompt
-        run: |
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            extra="Celebrate the revolutionary tag ${GITHUB_REF_NAME} with bold, triumphant imagery."
-          else
-            extra="Celebrate the victorious merge into main at commit ${GITHUB_SHA:0:7}."
-          fi
           echo "prompt=$extra" >> "$GITHUB_OUTPUT"
 
       - name: Generate and post poster
@@ -45,6 +56,6 @@ jobs:
         uses: ./.github/workflows/propaganda-review.yml
         with:
           pull_number: ${{ steps.pr.outputs.pull_number }}
-          image_prompt: ${{ steps.prompt.outputs.prompt }}
+          image_prompt: ${{ steps.pr.outputs.prompt }}
         secrets:
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
