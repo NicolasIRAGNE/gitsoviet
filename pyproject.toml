@@ -12,6 +12,7 @@ dependencies = [
     "Jinja2>=3.1",
     "requests>=2.31",
     "typer>=0.9",
+    "openai>=1.61",
 ]
 
 [project.scripts]
