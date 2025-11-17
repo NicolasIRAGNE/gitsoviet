@@ -1,0 +1,26 @@
+﻿name: gitsoviet CI
+
+on:
+  pull_request:
+    branches:
+      - "*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install package
+        run: pip install -e .
+      - name: Import check
+        run: python -m compileall src
+      - name: Build container
+        run: docker build --tag gitsoviet:test .
+
