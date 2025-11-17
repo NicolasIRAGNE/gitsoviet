@@ -12,7 +12,7 @@ from .base import ImageProvider
 class OpenAIProvider(ImageProvider):
     """OpenAI image generation API (DALL-E/GPT-Image)."""
 
-    def __init__(self, *, model: str = "gpt-image-1", size: Optional[str] = None) -> None:
+    def __init__(self, *, model: str = "dall-e-3", size: Optional[str] = None) -> None:
         self.model = model
         self.size = size or "1024x1536"
 

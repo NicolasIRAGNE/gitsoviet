@@ -57,7 +57,7 @@ def _determine_size(format_name: str) -> str:
     return "1024x1536"
 
 
-@app.command()
+@app.command(name="generate")
 def generate(
     repo: Optional[str] = typer.Option(None, help="target repository, e.g. org/repo"),
     pr_number: Optional[int] = typer.Option(None, help="pull request number"),

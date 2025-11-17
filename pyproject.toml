@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "gitsoviet"
@@ -17,8 +17,9 @@ dependencies = [
 [project.scripts]
 gitsoviet = "gitsoviet.cli:app"
 
-[tool.hatch.build.targets.wheel]
-packages = ["gitsoviet"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gitsoviet*"]
 
-[tool.hatch.build.include]
-paths = ["README.md", "gitsoviet"]
+[tool.setuptools.package-data]
+gitsoviet = ["data/**/*.txt", "templates/*.j2"]

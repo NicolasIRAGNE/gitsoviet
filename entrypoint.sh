@@ -19,7 +19,7 @@ for arg in "$@"; do
     esac
 done
 
-gitsoviet "$@"
+python -m gitsoviet "$@"
 
 if [ -n "${GITHUB_OUTPUT:-}" ]; then
     resolved_path="$(python -c 'import os,sys;print(os.path.abspath(sys.argv[1]))' "$OUTPUT_PATH")"

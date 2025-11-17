@@ -1,12 +1,16 @@
-FROM python:3.12-slim AS base
+FROM python:3.12-slim
 WORKDIR /app
 
-# Install runtime dependencies
-RUN python -m pip install --upgrade pip
+# Install dependencies directly
+RUN pip install --no-cache-dir Jinja2>=3.1 requests>=2.31 typer>=0.9
 
-COPY pyproject.toml README.md entrypoint.sh ./
+# Copy application files
+COPY entrypoint.sh ./
 COPY gitsoviet ./gitsoviet
 
-RUN pip install --no-cache-dir .
+# Ensure entrypoint is executable
+RUN chmod +x ./entrypoint.sh
+
+ENV PYTHONPATH=/app
 
 ENTRYPOINT ["./entrypoint.sh"]
