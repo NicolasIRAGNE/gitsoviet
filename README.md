@@ -18,6 +18,7 @@ jobs:
     with:
       pull_number: ${{ github.event.pull_request.number }}
       image_prompt: "Add a rocket launch and code motifs."
+      language: "Spanish"
     secrets:
       openai_api_key: ${{ secrets.OPENAI_API_KEY }}
 ```
@@ -26,6 +27,7 @@ jobs:
 - `pull_number` (**required**): Target pull request number.
 - `image_prompt` (optional): Extra art direction appended to the generated prompt.
 - `image_api` (optional): Label for the provider (defaults to `openai`).
+- `language` (optional): Preferred language for any text or slogans in the poster (defaults to `English`).
 - `openai_model` (optional): Model name for the image endpoint (defaults to `gpt-image-1`).
 - `openai_base_url` (optional): Base URL for an OpenAI-compatible image generation endpoint (defaults to `https://api.openai.com/v1`).
 

@@ -17,6 +17,11 @@ on:
         required: false
         default: "openai"
         type: string
+      language:
+        description: "Preferred language for any text or messaging in the poster"
+        required: false
+        default: "English"
+        type: string
       openai_model:
         description: "Model to use for the ChatGPT Image API"
         required: false
@@ -80,6 +85,7 @@ SUMMARY
 You are an illustrator creating a Soviet-style propaganda poster.
 Use the pull request context below to inspire the artwork.
 Highlight teamwork, code quality, and revolutionary zeal for software craftsmanship.
+ Render any text or slogans in this language: ${{ inputs.language }}.
 
 ${{ steps.pr.outputs.title }}
 
