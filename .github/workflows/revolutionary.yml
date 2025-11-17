@@ -6,10 +6,7 @@ on:
 
 jobs:
   celebrate:
-    if: >
-      env.API_KEY != '' &&
-      github.event.pull_request.draft == false &&
-      contains(join(github.event.pull_request.labels.*.name, ','), 'revolutionary')
+    if: ${{ github.event.pull_request.draft == false && contains(github.event.pull_request.labels.*.name, 'revolutionary') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
