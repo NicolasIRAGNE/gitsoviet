@@ -1,0 +1,24 @@
+{
+  "name": "gitsoviet",
+  "version": "0.1.0",
+  "description": "GitHub App that comments Soviet-style propaganda poster images on PRs.",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --noEmit false",
+    "start": "probot run ./dist/index.js",
+    "dev": "probot run ./src/index.ts --dev",
+    "lint": "tsc --noEmit",
+    "release-poster": "node -r ts-node/register src/scripts/generateReleasePoster.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "openai": "^4.56.0",
+    "probot": "^13.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  }
+}

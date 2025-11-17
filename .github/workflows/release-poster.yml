@@ -1,0 +1,48 @@
+name: Release poster
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  attach-poster:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate release poster
+        env:
+          IMAGE_PROVIDER: ${{ vars.IMAGE_PROVIDER || 'chatgpt' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+          OPENAI_IMAGE_MODEL: ${{ vars.OPENAI_IMAGE_MODEL || 'gpt-image-1' }}
+          POSTER_PROMPT: ${{ vars.POSTER_PROMPT }}
+          MAX_FILES: ${{ vars.MAX_FILES || '10' }}
+          IMAGE_WIDTH: ${{ vars.IMAGE_WIDTH || '1024' }}
+          IMAGE_HEIGHT: ${{ vars.IMAGE_HEIGHT || '1536' }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: node -r ts-node/register src/scripts/generateReleasePoster.ts
+
+      - name: Create or update release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: assets/release-poster.png
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

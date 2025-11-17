@@ -1,0 +1,14 @@
+# Default configuration for the gitsoviet GitHub App
+name: gitsoviet
+url: https://github.com/apps/gitsoviet
+
+# Events this app is subscribed to
+default_events:
+  - pull_request
+
+# Permissions needed
+# pull_requests: read is required for reading metadata and file changes
+# issues: write is required for commenting on pull requests
+default_permissions:
+  pull_requests: read
+  issues: write
