@@ -51,7 +51,31 @@ Probot will start a development server and listen for GitHub webhook events. Use
 
 ## Release poster workflow
 
-A GitHub Actions workflow (`.github/workflows/release-poster.yml`) runs on tag pushes. It uses the configured image provider to build a release-themed prompt from the tagged commit, renders a poster to `assets/release-poster.png`, and publishes the image as an asset on the corresponding release. Provide the necessary secrets (for example `OPENAI_API_KEY`) so the workflow can contact your chosen image service. The default `GITHUB_TOKEN` is sufficient for creating or updating releases.
+This repository ships a reusable workflow (`.github/workflows/reusable-release-poster.yml`) that you can call from any workflow to create a portrait poster and attach it to a release. For a simple tag-driven setup, `.github/workflows/release-poster.yml` delegates directly to the reusable workflow.
+
+Example usage from another workflow:
+
+```yaml
+name: Release poster
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  poster:
+    uses: <owner>/<repo>/.github/workflows/reusable-release-poster.yml@main
+    secrets: inherit
+    with:
+      image_provider: chatgpt
+      poster_prompt: "Soviet-style propaganda release poster"
+      max_files: "10"
+      image_width: "1024"
+      image_height: "1536"
+```
+
+Set `OPENAI_API_KEY` (and optionally `OPENAI_BASE_URL` / `OPENAI_IMAGE_MODEL`) in your repository secrets or inherited environment so the workflow can reach your chosen image provider. The default `GITHUB_TOKEN` is sufficient for creating or updating releases.
 
 ## Notes
 

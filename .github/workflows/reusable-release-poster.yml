@@ -1,0 +1,87 @@
+name: Reusable release poster
+
+on:
+  workflow_call:
+    inputs:
+      image_provider:
+        description: Image provider to use (chatgpt or dummy)
+        required: false
+        default: chatgpt
+        type: string
+      poster_prompt:
+        description: Base prompt to steer the poster
+        required: false
+        type: string
+      max_files:
+        description: Number of files to include in the prompt
+        required: false
+        default: '10'
+        type: string
+      image_width:
+        description: Poster width in pixels
+        required: false
+        default: '1024'
+        type: string
+      image_height:
+        description: Poster height in pixels
+        required: false
+        default: '1536'
+        type: string
+      tag_name:
+        description: Tag name to include in the prompt
+        required: false
+        type: string
+      output_path:
+        description: Path for the generated poster
+        required: false
+        default: assets/release-poster.png
+        type: string
+    secrets:
+      openai_api_key:
+        required: false
+      openai_base_url:
+        required: false
+      openai_image_model:
+        required: false
+      github_token:
+        required: false
+
+jobs:
+  generate-poster:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate release poster
+        env:
+          IMAGE_PROVIDER: ${{ inputs.image_provider }}
+          OPENAI_API_KEY: ${{ secrets.openai_api_key }}
+          OPENAI_BASE_URL: ${{ secrets.openai_base_url }}
+          OPENAI_IMAGE_MODEL: ${{ secrets.openai_image_model || 'gpt-image-1' }}
+          POSTER_PROMPT: ${{ inputs.poster_prompt }}
+          MAX_FILES: ${{ inputs.max_files }}
+          IMAGE_WIDTH: ${{ inputs.image_width }}
+          IMAGE_HEIGHT: ${{ inputs.image_height }}
+          TAG_NAME: ${{ inputs.tag_name || github.ref_name }}
+          POSTER_OUTPUT_PATH: ${{ inputs.output_path }}
+        run: node -r ts-node/register src/scripts/generateReleasePoster.ts
+
+      - name: Create or update release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ inputs.tag_name || github.ref_name }}
+          name: Release ${{ inputs.tag_name || github.ref_name }}
+          files: ${{ inputs.output_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_token || secrets.GITHUB_TOKEN }}
