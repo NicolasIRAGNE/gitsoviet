@@ -1,0 +1,84 @@
+﻿name: Revolutionary Posters
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronized
+      - labeled
+
+permissions:
+  contents: read
+  packages: read
+  pull-requests: read
+
+jobs:
+  poster:
+    if: contains(github.event.pull_request.labels.*.name, 'revolutionary')
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: ghcr.io/${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }} > pr.diff
+      - name: Prepare inputs
+        id: poster-inputs
+        shell: bash
+        run: |
+          language='${{ vars.GITSOVIET_LANGUAGE }}'
+          if [ -z "$language" ]; then language='English'; fi
+          format='${{ vars.GITSOVIET_FORMAT }}'
+          if [ -z "$format" ]; then format='poster'; fi
+          style='${{ vars.GITSOVIET_STYLE }}'
+          if [ -z "$style" ]; then style='soviet'; fi
+          extra='${{ vars.GITSOVIET_ADDITIONAL_PROMPT }}'
+          cat <<'EOF' > additional_prompt.txt
+${{ vars.GITSOVIET_ADDITIONAL_PROMPT }}
+EOF
+          cat <<'EOF' > pr_title.txt
+${{ github.event.pull_request.title }}
+EOF
+          cat <<'EOF' > pr_description.txt
+${{ github.event.pull_request.body || '' }}
+EOF
+          {
+            echo "language=$language"
+            echo "format=$format"
+            echo "style=$style"
+            echo "extra=$extra"
+          } >> "$GITHUB_OUTPUT"
+      - name: Log in to GHCR
+        run: echo "${{ github.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Generate propaganda poster
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          mkdir -p output
+          docker pull ${IMAGE_NAME}:latest
+          docker run --rm \
+            -e OPENAI_API_KEY \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            ${IMAGE_NAME}:latest \
+            --repo-name "${{ github.repository }}" \
+            --pr-title-file pr_title.txt \
+            --pr-description-file pr_description.txt \
+            --pr-author "${{ github.event.pull_request.user.login }}" \
+            --diff-file pr.diff \
+            --format "${{ steps.poster-inputs.outputs.format }}" \
+            --style "${{ steps.poster-inputs.outputs.style }}" \
+            --language "${{ steps.poster-inputs.outputs.language }}" \
+            --additional-prompt-file additional_prompt.txt \
+            --output output/poster.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: revolutionary-poster
+          path: output/poster.png
+          if-no-files-found: error
+
+
