@@ -36,9 +36,6 @@ jobs:
           style='${{ vars.GITSOVIET_STYLE }}'
           if [ -z "$style" ]; then style='soviet'; fi
           extra='${{ vars.GITSOVIET_ADDITIONAL_PROMPT }}'
-          printf "%s\n" "${{ vars.GITSOVIET_ADDITIONAL_PROMPT }}" > additional_prompt.txt
-          printf "%s\n" "${{ github.event.pull_request.title }}" > pr_title.txt
-          printf "%s\n" "${{ github.event.pull_request.body || '' }}" > pr_description.txt
           {
             echo "language=$language"
             echo "format=$format"
@@ -68,14 +65,14 @@ jobs:
             -w /workspace \
             "${image_ref}" \
             --repo-name "${{ github.repository }}" \
-            --pr-title-file pr_title.txt \
-            --pr-description-file pr_description.txt \
+            --pr-title "${{ github.event.pull_request.title }}" \
+            --pr-description "${{ github.event.pull_request.body || '' }}" \
             --pr-author "${{ github.event.pull_request.user.login }}" \
             --diff-file pr.diff \
             --format "${{ steps.poster-inputs.outputs.format }}" \
             --style "${{ steps.poster-inputs.outputs.style }}" \
             --language "${{ steps.poster-inputs.outputs.language }}" \
-            --additional-prompt-file additional_prompt.txt \
+            --additional-prompt "${{ steps.poster-inputs.outputs.extra }}" \
             --output output/poster.png
       - uses: actions/upload-artifact@v4
         with:
